@@ -1,0 +1,4 @@
+{
+    "AppSyncApiName": "awsappsyncapollotest",
+    "DynamoDBBillingMode": "PAY_PER_REQUEST"
+}

@@ -1,0 +1,6 @@
+type Printer @model {
+  id: ID!
+  name: String
+  ip_address: String
+  status: String
+}
