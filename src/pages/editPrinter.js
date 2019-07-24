@@ -69,12 +69,14 @@ class EditPrinter extends Component {
           />
         </div>
         <div>
-          <input
-            name="status"
-            placeholder="status"
-            defaultValue={this.state.status}
-            onChange={this._handleChange}
-          />
+          <select 
+            id="status" 
+            name="status" 
+            onChange={this._handleChange} 
+            value={this.state.status}>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
         <button type="submit">update</button>
       </form>
