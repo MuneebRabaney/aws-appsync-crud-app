@@ -19,15 +19,7 @@ const config = {
 }
 
 const options = {
-  disableOffline: true,
-  defaultOptions: {
-    watchQuery: {
-      fetchPolicy: 'no-cache',
-    },
-    query: {
-      fetchPolicy: 'no-cache',
-    },
-  },
+  disableOffline: false,
   cache
 }
 

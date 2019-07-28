@@ -15,8 +15,8 @@ class Single extends Component {
         query={gql(getPrinter)} 
         variables={{ id: params.id }}
       >
+      
       { ({ data, loading, error }) => {
-
           if (loading) return <Loader />;
 
           if (error || !data || !data.getPrinter) return null;

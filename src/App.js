@@ -1,4 +1,5 @@
 import './styles/reset.css';
+import './styles/fonts.css';
 import React, { Component, Fragment } from 'react';
 import { BrowserRouter as Switch, Route } from "react-router-dom";
 

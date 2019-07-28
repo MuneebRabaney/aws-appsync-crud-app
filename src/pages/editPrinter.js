@@ -3,19 +3,24 @@ import { getPrinter } from "../graphql/queries";
 import { updatePrinter } from "../graphql/mutations";
 import { compose, graphql, withApollo } from "react-apollo";
 import gql from "graphql-tag";
+import { Form } from '../components/form'
 
 class EditPrinter extends Component {
   state = {
-    name: "",
-    ip_address: "",
-    status: ""
+    data: {
+      name: "",
+      ip_address: "",
+      status: "",
+    },
+    loading: true,
+    submittigFormValues: false,
   };
 
   componentWillMount()  {
-    this._handleSaveDataFromQueryToState();
+    this._handleGetPrinter();
   }
 
-  _handleSaveDataFromQueryToState = async () => {
+  _handleGetPrinter = async () => {
     const { match, client } = this.props;
     const id = match.params.id
     const { data } = await client.query({
@@ -26,7 +31,8 @@ class EditPrinter extends Component {
       let cleanData = Object.assign({}, data.getPrinter);
       delete cleanData.__typename;
       let state = Object.assign({}, this.state);
-      state = cleanData;
+      state.data = cleanData;
+      state.loading = false;
       this.setState(state);
     }
   }
@@ -36,50 +42,36 @@ class EditPrinter extends Component {
     this.setState({ [name]: value });
   };
 
-  _handleSubmit = async event => {
-    event.preventDefault()
+  _handleSubmit = async ({ items }) => {
+    const { id } = this.state.data;
     const { client, history } = this.props;
+    const state = Object.assign({}, this.state);
+    state.submittigFormValues = true;
+    this.setState(state);
     await client.mutate({
       mutation: gql(updatePrinter),
       variables: {  
-        input: this.state
+        input: {
+          id,
+          ...items
+        }
       }
     });
     history.push('/');
   }
 
   render() { 
+    const {  data, submittigFormValues } = this.state;
     return (
-      <form onSubmit={this._handleSubmit}>
-        <h3>Edit Printer</h3>
-        <div>
-          <input
-            name="name"
-            placeholder="name"
-            defaultValue={this.state.name}
-            onChange={this._handleChange}
-          />
-        </div>
-        <div>
-          <input
-            name="ip_address"
-            placeholder="ip_address"
-            defaultValue={this.state.ip_address}
-            onChange={this._handleChange}
-          />
-        </div>
-        <div>
-          <select 
-            id="status" 
-            name="status" 
-            onChange={this._handleChange} 
-            value={this.state.status}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <button type="submit">update</button>
-      </form>
+      <Form
+        ref={this.formRef}
+        heading='Edit Printer'
+        onSubmit={this._handleSubmit}
+        onChange={this._handleChange}
+        submitButtonText={`${submittigFormValues ? 'Updating Printer...': 'Update Printer'}`}
+        data={data}
+      />
+      
     )
   }
 }

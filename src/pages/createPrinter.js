@@ -1,72 +1,108 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
+import { createPrinter } from "../graphql/mutations";
+import { listPrinters } from "../graphql/queries";
+import gql from "graphql-tag";
+import Form from '../components/form/layout';
+import { withApollo, compose, graphql } from "react-apollo";
+import { Loader } from '../components/ui';
 
 class CreatePrinter extends Component {
   state = {
-    name: "",
-    ip_address: "",
-    status: ""
-  };
+    data: {
+      name: "",
+      ip_address: "",
+      status: "",
+    },
+    resetForm: false,
+    showMessage: false,
+    saving: false,
+  }
 
-  constructor() {
-    super();
-    this.formRef = React.createRef();
-    this.nameRef = React.createRef();
-    this.ipAddressRef = React.createRef();
-    this.statusRef = React.createRef();
+  componentDidUpdate(nextProps) {
+    const { items } = this.props.data.listPrinters
+    if (items.length > nextProps.data.listPrinters.items.length) {
+      this._handleSavePrinter();
+    }
+    return false;
+  }
+
+  _handleResetFormFields = () => {
+    const state = Object.assign({}, this.state);
+    state.resetForm = true;
+    this.setState(state);
+  }
+
+  _handleSavePrinter = () => {
+    const state = Object.assign({}, this.state);
+    state.saving = !this.state.saving;
+    this.setState(state);
+  }
+
+  _handleCreatePrinter = async ({ items }) => {
+    const { client } = this.props;
+    this._handleSavePrinter();
+    await client.mutate({
+      mutation: gql(createPrinter),
+      variables: {  
+        input: items
+      },
+      // optimisticResponse: {
+      //   listPrinters: {
+      //     items: {
+      //       id: '9',
+      //       ...items,
+      //       __typename: "Printers",
+      //     }
+          
+      //   }
+      // },
+      // update: (store, { data: { createPrinter } }) => {
+      //   const response = store.readQuery({ 
+      //     query: gql(listPrinters)
+      //   });
+      //   const { items } = response.listPrinters 
+      //   // console.log(createPrinter)
+      //   // items.push(createPrinter)
+
+      //   const n = store.writeQuery({
+      //     query: gql(listPrinters),
+      //     data: {
+      //       items: [...items, createPrinter]
+      //     },
+          
+      //   });
+      //   console.log(n)
+      // },
+      refetchQueries: [{
+        query: gql(listPrinters)
+      }],
+    });
   }
   
-  _handleChange = event => {
-    const { name, value } = event.target;
-    this.setState({ [name]: value });
-  };
-
-  _handleSubmit = async event => {
-    event.preventDefault();
-    if (
-      this.nameRef.current.value !== '' &&
-      this.statusRef.current.value !== '' &&
-      this.ipAddressRef.current.value !== ''
-    ) return this.props.onSubmit(this.state);
+  _handleShowMessage = () => {
+    const state = Object.assign({}, this.state);
+    state.showMessage = true;
+    this.setState(state);
+    
   }
 
   render() {
+    const { saving } = this.state;
     return (
-      <form ref={this.formRef} onSubmit={this._handleSubmit}>
-        <h3>Create Printer</h3>
-        <div>
-          <input
-            name="name"
-            ref={this.nameRef}
-            placeholder="name"
-            value={this.state.name}
-            onChange={this._handleChange}
-          />
-        </div>
-        <div>
-          <input
-            name="ip_address"
-            ref={this.ipAddressRef}
-            placeholder="ip_address"
-            value={this.state.ip_address}
-            onChange={this._handleChange}
-          />
-        </div>
-        <div>
-          <select 
-            id="status" 
-            name="status" 
-            ref={this.statusRef}
-            onChange={this._handleChange} 
-            value={this.state.status}>
-            <option value="">Please select a printer status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <button type="submit">Save Printer</button>
-      </form>
+      <Fragment>  
+        <Form
+          heading="Create Printer"
+          ref={this.formRef}
+          resetForm={this.state.resetForm}
+          onSubmit={this._handleCreatePrinter}
+          submitButtonText={`${saving ?  'Saving Printer...' : 'Save Printer'}`}
+        />
+      </Fragment>  
     );
   }
 }
 
-export default CreatePrinter;
+export default compose(
+  withApollo,
+  graphql(gql(listPrinters))
+)(CreatePrinter);

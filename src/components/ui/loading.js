@@ -5,6 +5,6 @@ const Container = styled.div `
   margin: 10px auto;
 `
 
-const Loader = () => <Container style={{  }}>loading...</Container>;
+const Loader = ({ message = false }) => <Container>{!message ? 'Loading...' : message}</Container>;
 
 export default Loader;
